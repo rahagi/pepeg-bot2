@@ -1,5 +1,7 @@
 FROM golang:alpine as build
 
+ARG VERSION
+
 RUN mkdir /app
 
 WORKDIR /app
@@ -12,10 +14,10 @@ RUN go mod verify
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o pepeg_bot .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags "-X 'main.Version=${VERSION}'" -o pepeg-bot .
 
 FROM scratch as prod
 
-COPY --from=build /app/pepeg_bot /app/pepeg_bot
+COPY --from=build /app/pepeg-bot /app/pepeg-bot
 
-ENTRYPOINT ["/app/pepeg_bot"]
+ENTRYPOINT ["/app/pepeg-bot"]

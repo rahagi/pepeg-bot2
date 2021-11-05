@@ -2,8 +2,9 @@ version: "2"
 
 services:
   bot:
-    container_name: pepeg-bot2
-    build: .
+    container_name: pepeg-bot
     image: pepeg-bot:latest
     env_file:
       - .env
+    volumes:
+      - ./log:/log
