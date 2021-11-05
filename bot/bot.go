@@ -58,7 +58,7 @@ func (b *bot) defaultHandler(m *message.Payload) {
 	case strings.HasPrefix(m.Message, "PING"):
 		b.IRCClient.Pong()
 	default:
-		if b.EnableLogging {
+		if b.EnableLogging && m.User != "" {
 			fm := fmt.Sprintf("%s: %s", m.User, m.Message)
 			logPath := fmt.Sprintf("./log/%s.log", b.IRCClient.GetChannel())
 			logger.Tee(fm, logPath)
