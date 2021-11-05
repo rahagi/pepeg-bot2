@@ -3,7 +3,7 @@ version: "2"
 services:
   bot:
     container_name: pepeg-bot
-    image: pepeg-bot:latest
+    image: pepeg-bot2:latest
     env_file:
       - .env
     volumes:

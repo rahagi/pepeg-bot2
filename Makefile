@@ -10,10 +10,7 @@ image:
 	docker build -t ${DOCKER_TAG} --build-arg VERSION=${VERSION} .
 
 compose:
-	docker-compose up
-
-composed:
-	docker-compose up -d
+	docker-compose down && docker-compose up --remove-orphans -d
 
 test:
 	@go test -short ${PKG_LIST}
