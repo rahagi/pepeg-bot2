@@ -68,8 +68,7 @@ func (i *ircClient) Receive() <-chan *message.Payload {
 		for {
 			rawMessage, err := tp.ReadLine()
 			if err != nil {
-				i.reconnect()
-				continue
+				log.Fatalf("client: lost connection: %v\n", err)
 			}
 			m := message.BuildPayload(rawMessage)
 			messages <- m
@@ -121,10 +120,4 @@ func (i *ircClient) initConn() {
 		log.Fatalf("client: cannot connect to IRC server: %v\n", err)
 	}
 	i.Conn = conn
-}
-
-func (i *ircClient) reconnect() {
-	log.Println("client: attempting to reconnect")
-	i.Conn.Close()
-	i.initConn()
 }
