@@ -34,7 +34,7 @@ type ircClient struct {
 	OAuth    string
 	Channel  string
 	Addr     string
-	Conn     *net.Conn
+	Conn     net.Conn
 }
 
 // NewClient open an IRC connection using `net.Dial`
@@ -61,11 +61,10 @@ func (i *ircClient) Chat(m string) {
 }
 
 func (i *ircClient) Receive() <-chan *message.Payload {
-	c := *i.Conn
 	messages := make(chan *message.Payload)
-	tp := textproto.NewReader(bufio.NewReader(c))
+	tp := textproto.NewReader(bufio.NewReader(i.Conn))
 	go func() {
-		defer c.Close()
+		defer i.Conn.Close()
 		for {
 			rawMessage, err := tp.ReadLine()
 			if err != nil {
@@ -97,8 +96,7 @@ func (i *ircClient) join() {
 }
 
 func (i *ircClient) send(m string) error {
-	c := *i.Conn
-	_, err := c.Write([]byte(m + "\r\n"))
+	_, err := i.Conn.Write([]byte(m + "\r\n"))
 	if err != nil {
 		return err
 	}
@@ -122,12 +120,11 @@ func (i *ircClient) initConn() {
 	if err != nil {
 		log.Fatalf("client: cannot connect to IRC server: %v\n", err)
 	}
-	i.Conn = &conn
+	i.Conn = conn
 }
 
 func (i *ircClient) reconnect() {
 	log.Println("client: attempting to reconnect")
-	oldConn := *i.Conn
-	oldConn.Close()
+	i.Conn.Close()
 	i.initConn()
 }
