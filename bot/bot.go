@@ -22,15 +22,17 @@ type Bot interface {
 }
 
 type bot struct {
-	IRCClient irc.IRCClient
-	Handlers  map[string]HandlerFunc
+	IRCClient     irc.IRCClient
+	Handlers      map[string]HandlerFunc
+	EnableLogging bool
 }
 
-func NewBot(ircClient irc.IRCClient) Bot {
+func NewBot(ircClient irc.IRCClient, enableLogging bool) Bot {
 	handlerMap := make(map[string]HandlerFunc)
 	return &bot{
-		IRCClient: ircClient,
-		Handlers:  handlerMap,
+		IRCClient:     ircClient,
+		Handlers:      handlerMap,
+		EnableLogging: enableLogging,
 	}
 }
 
@@ -56,8 +58,10 @@ func (b *bot) defaultHandler(m *message.Payload) {
 	case strings.HasPrefix(m.Message, "PING"):
 		b.IRCClient.Pong()
 	default:
-		fm := fmt.Sprintf("%s: %s", m.User, m.Message)
-		logPath := fmt.Sprintf("./log/%s.log", b.IRCClient.GetChannel())
-		logger.Tee(fm, logPath)
+		if b.EnableLogging {
+			fm := fmt.Sprintf("%s: %s", m.User, m.Message)
+			logPath := fmt.Sprintf("./log/%s.log", b.IRCClient.GetChannel())
+			logger.Tee(fm, logPath)
+		}
 	}
 }

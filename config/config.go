@@ -2,15 +2,17 @@ package config
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
 
 type config struct {
-	Username string
-	OAuth    string
-	Channel  string
-	IRCAddr  string
+	Username      string
+	OAuth         string
+	Channel       string
+	IRCAddr       string
+	EnableLogging bool
 }
 
 func BuildConfig() *config {
@@ -20,5 +22,6 @@ func BuildConfig() *config {
 	c.OAuth = os.Getenv("OAUTH")
 	c.Channel = os.Getenv("CHANNEL")
 	c.IRCAddr = os.Getenv("IRC_ADDR")
+	c.EnableLogging, _ = strconv.ParseBool(os.Getenv("ENABLE_LOGGING"))
 	return c
 }

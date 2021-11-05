@@ -22,7 +22,7 @@ func main() {
 	log.Printf("connected to (%s)\n", cfg.IRCAddr)
 
 	// Bot initialization
-	bot_ := bot.NewBot(ircClient)
+	bot_ := bot.NewBot(ircClient, cfg.EnableLogging)
 	bot_.Handle("--version", func(i irc.IRCClient, p *message.Payload) error {
 		message := fmt.Sprintf("@%s pepeg-bot2 version: %s", p.User, Version)
 		i.Chat(message)
