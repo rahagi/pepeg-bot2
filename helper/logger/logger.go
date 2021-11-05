@@ -12,6 +12,7 @@ func Tee(s, filePath string) error {
 	if err != nil {
 		return err
 	}
+	defer logFile.Close()
 	mw := io.MultiWriter(os.Stdout, logFile)
 	mw.Write([]byte(fmt.Sprintf("%s\n", s)))
 	return nil

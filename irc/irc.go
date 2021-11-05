@@ -61,9 +61,11 @@ func (i *ircClient) Chat(m string) {
 }
 
 func (i *ircClient) Receive() <-chan *message.Payload {
+	c := *i.Conn
 	messages := make(chan *message.Payload)
-	tp := textproto.NewReader(bufio.NewReader(*i.Conn))
+	tp := textproto.NewReader(bufio.NewReader(c))
 	go func() {
+		defer c.Close()
 		for {
 			rawMessage, err := tp.ReadLine()
 			if err != nil {
