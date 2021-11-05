@@ -106,13 +106,14 @@ func (i *ircClient) send(m string) error {
 }
 
 func (i *ircClient) auth() {
-	err := i.send("PASS " + i.OAuth)
-	if err != nil {
-		log.Fatalf("client: failed to authenticate: %v\n", err)
+	messages := []string{
+		"PASS " + i.OAuth,
+		"NICK " + i.Username,
 	}
-	err = i.send("NICK " + i.Username)
-	if err != nil {
-		log.Fatalf("client: failed to authenticate: %v\n", err)
+	for _, m := range messages {
+		if err := i.send(m); err != nil {
+			log.Fatalf("client: failed to authenticate:  %v", err)
+		}
 	}
 }
 
