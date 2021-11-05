@@ -4,12 +4,18 @@ RUN mkdir /app
 
 WORKDIR /app
 
+COPY go.* ./
+
+RUN go mod download
+
+RUN go mod verify
+
 COPY . .
 
-RUN GOOS=linux go build pepeg_bot.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o pepeg_bot .
 
 FROM scratch as prod
 
-COPY --from=build /app/pepeg_bot .
+COPY --from=build /app/pepeg_bot /app/pepeg_bot
 
-ENTRYPOINT ["./pepeg_bot"]
+ENTRYPOINT ["/app/pepeg_bot"]
