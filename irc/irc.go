@@ -33,25 +33,23 @@ type ircClient struct {
 	Username string
 	OAuth    string
 	Channel  string
+	Addr     string
 	Conn     *net.Conn
 }
 
-// NewClient instantiate IRC connection using `net.Dial`
+// NewClient open an IRC connection using `net.Dial`
 // with `tcp` connection. After connection has been established,
 // it continue authenticate the connection and join a channel
 func NewClient(username, oauth, channel, addr string) IRCClient {
-	conn, err := net.Dial("tcp", addr)
-	if err != nil {
-		log.Fatal("client: cannot connect to IRC server")
-	}
 	client := &ircClient{
 		Username: username,
 		OAuth:    oauth,
 		Channel:  channel,
-		Conn:     &conn,
+		Addr:     addr,
 	}
+	client.initConn()
 	client.auth()
-	client.join(channel)
+	client.join()
 	return client
 }
 
@@ -69,7 +67,8 @@ func (i *ircClient) Receive() <-chan *message.Payload {
 		for {
 			rawMessage, err := tp.ReadLine()
 			if err != nil {
-				log.Printf("client: failed to receive a message: %v\n", err)
+				i.reconnect()
+				continue
 			}
 			m := message.BuildPayload(rawMessage)
 			messages <- m
@@ -87,12 +86,12 @@ func (i *ircClient) GetUsername() string { return i.Username }
 
 func (i *ircClient) GetChannel() string { return i.Channel }
 
-func (i *ircClient) join(c string) {
-	message := fmt.Sprintf("JOIN #%s", c)
+func (i *ircClient) join() {
+	message := fmt.Sprintf("JOIN #%s", i.Channel)
 	if err := i.send(message); err != nil {
 		log.Fatalf("client: failed to join a channel: %v", err)
 	}
-	log.Printf("joined channel %s\n", c)
+	log.Printf("joined channel %s\n", i.Channel)
 }
 
 func (i *ircClient) send(m string) error {
@@ -113,4 +112,19 @@ func (i *ircClient) auth() {
 	if err != nil {
 		log.Fatalf("client: failed to authenticate: %v\n", err)
 	}
+}
+
+func (i *ircClient) initConn() {
+	conn, err := net.Dial("tcp", i.Addr)
+	if err != nil {
+		log.Fatalf("client: cannot connect to IRC server: %v\n", err)
+	}
+	i.Conn = &conn
+}
+
+func (i *ircClient) reconnect() {
+	log.Println("client: attempting to reconnect")
+	oldConn := *i.Conn
+	oldConn.Close()
+	i.initConn()
 }
