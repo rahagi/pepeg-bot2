@@ -1,6 +1,7 @@
 package message
 
 import (
+	"fmt"
 	"regexp"
 	"time"
 )
@@ -31,4 +32,8 @@ func BuildPayload(rawMessage string) *Payload {
 		Message:   message,
 		Timestamp: time.Now().UTC().Unix(),
 	}
+}
+
+func (p *Payload) Format() string {
+	return fmt.Sprintf("%s: %s", p.User, p.Message)
 }

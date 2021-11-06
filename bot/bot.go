@@ -84,11 +84,10 @@ func (b *bot) defaultHandler(m *message.Payload) {
 		b.resetCounter()
 	}
 	if m.User != "" {
-		fm := fmt.Sprintf("%s: %s", m.User, m.Message)
-		go b.T.AddChain(fm)
+		go b.T.AddChain(m.Format())
 		if b.enableLogging {
 			logPath := fmt.Sprintf("./log/%s.log", b.IRCClient.GetChannel())
-			logger.Tee(fm, logPath)
+			logger.Tee(m.Format(), logPath)
 		}
 	}
 }
