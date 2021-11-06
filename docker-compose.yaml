@@ -24,7 +24,7 @@ services:
     <<: *restart-policy
     <<: *network
     volumes:
-      - model-dump:/data
+      - ./model:/data
 
 volumes:
   model-dump:
