@@ -38,6 +38,7 @@ func (t *trainer) Train() {
 	if err != nil {
 		log.Fatalf("trainer: cannot read directory %s: %v", t.trainingData, err)
 	}
+	log.Println("starting training model...")
 	for _, fi := range files {
 		if !fi.IsDir() {
 			p := path.Join(t.trainingData, fi.Name())
@@ -51,6 +52,7 @@ func (t *trainer) Train() {
 				t.addChain(s.Text())
 			}
 		}
+		log.Println("training done")
 	}
 }
 
@@ -68,7 +70,6 @@ func (t *trainer) addChain(s string) {
 			} else {
 				next = m[j]
 			}
-			log.Printf("(%s): [%s]", chain, next)
 			t.r.ZIncrBy(ctx, chain, 1, next)
 		}
 	}
