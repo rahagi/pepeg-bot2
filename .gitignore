@@ -2,3 +2,4 @@
 pepeg_bot
 .env
 log
+training/*

@@ -1,0 +1,20 @@
+version: "2"
+
+x-op-network: &network
+  networks:
+    - pepeg-net
+
+services:
+  trainer:
+    container_name: pepeg-bot-trainer
+    image: pepeg-bot2:latest
+    entrypoint: "/app/pepeg-bot train"
+    <<: *network
+    env_file:
+      - .env
+    volumes:
+      - ./training:/training
+
+networks:
+  pepeg-net:
+    driver: bridge

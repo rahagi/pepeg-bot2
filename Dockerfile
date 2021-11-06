@@ -16,7 +16,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags "-X 'main.Version=${VERSION}'" -o pepeg-bot .
 
-FROM scratch as prod
+FROM alpine as prod
 
 COPY --from=build /app/pepeg-bot /app/pepeg-bot
 

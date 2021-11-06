@@ -13,6 +13,7 @@ type config struct {
 	Channel       string
 	IRCAddr       string
 	EnableLogging bool
+	RedisHostname string
 }
 
 func BuildConfig() *config {
@@ -23,5 +24,6 @@ func BuildConfig() *config {
 	c.Channel = os.Getenv("CHANNEL")
 	c.IRCAddr = os.Getenv("IRC_ADDR")
 	c.EnableLogging, _ = strconv.ParseBool(os.Getenv("ENABLE_LOGGING"))
+	c.RedisHostname = os.Getenv("REDIS_HOSTNAME")
 	return c
 }

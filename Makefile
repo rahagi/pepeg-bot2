@@ -12,11 +12,14 @@ image:
 compose:
 	docker-compose down && docker-compose up --remove-orphans -d
 
+train:
+	docker-compose -f docker-compose.train.yml up -d
+
 test:
 	@go test -short ${PKG_LIST}
 
 clean:
-	docker image rm -f ${DOCKER_TAG}
+	docker image rm -f ${DOCKER_TAG} && docker-compose down --remove-orphans
 
 run: image compose
 
