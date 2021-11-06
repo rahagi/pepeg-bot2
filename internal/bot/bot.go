@@ -5,10 +5,10 @@ import (
 	"log"
 	"strings"
 
-	"github.com/rahagi/pepeg-bot2/helper/common"
-	"github.com/rahagi/pepeg-bot2/helper/logger"
-	"github.com/rahagi/pepeg-bot2/irc"
-	"github.com/rahagi/pepeg-bot2/irc/message"
+	"github.com/rahagi/pepeg-bot2/internal/helper/common"
+	"github.com/rahagi/pepeg-bot2/internal/helper/logger"
+	"github.com/rahagi/pepeg-bot2/internal/irc"
+	"github.com/rahagi/pepeg-bot2/internal/irc/message"
 	"github.com/rahagi/pepeg-bot2/markov/generator"
 	"github.com/rahagi/pepeg-bot2/markov/trainer"
 )

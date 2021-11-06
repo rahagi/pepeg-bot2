@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rahagi/pepeg-bot2/constant"
+	"github.com/rahagi/pepeg-bot2/internal/constant"
 )
 
 // PickCommand parse chat message and return a valid command

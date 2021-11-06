@@ -6,10 +6,10 @@ import (
 	"os"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/rahagi/pepeg-bot2/bot"
 	"github.com/rahagi/pepeg-bot2/config"
-	"github.com/rahagi/pepeg-bot2/irc"
-	"github.com/rahagi/pepeg-bot2/irc/message"
+	"github.com/rahagi/pepeg-bot2/internal/bot"
+	"github.com/rahagi/pepeg-bot2/internal/irc"
+	"github.com/rahagi/pepeg-bot2/internal/irc/message"
 	"github.com/rahagi/pepeg-bot2/markov/generator"
 	"github.com/rahagi/pepeg-bot2/markov/trainer"
 )
