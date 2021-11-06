@@ -7,7 +7,7 @@ import (
 	"net"
 	"net/textproto"
 
-	"github.com/rahagi/pepeg-bot2/irc/message"
+	"github.com/rahagi/pepeg-bot2/internal/irc/message"
 )
 
 // IRCClient
