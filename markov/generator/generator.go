@@ -54,6 +54,7 @@ func (g *generator) Generate(seed string, maxWords int) (string, error) {
 		mid := strings.Split(key, config.KEY_SEPARATOR)[1:]
 		chain = append(mid, next)
 	}
+	res = strings.TrimSuffix(res, " ")
 	if len(strings.Split(res, " ")) <= config.CHAIN_LEN {
 		res = ""
 	}
