@@ -33,7 +33,8 @@ func main() {
 
 		// Bot initialization
 		g := generator.NewGenerator(r)
-		bot_ := bot.NewBot(ircClient, cfg.EnableLogging, g)
+		t := trainer.NewTrainer(r)
+		bot_ := bot.NewBot(ircClient, cfg.EnableLogging, g, t)
 		bot_.Handle("--version", func(i irc.IRCClient, p *message.Payload) error {
 			message := fmt.Sprintf("@%s pepeg-bot2 version: %s", p.User, Version)
 			i.Chat(message)
@@ -48,7 +49,7 @@ func main() {
 			tData = cm[1]
 		}
 		log.Printf("connecting to redis (%s)\n", cfg.RedisHostname)
-		t := trainer.NewTrainer(r, tData)
+		t := trainer.NewTrainerWithData(r, tData)
 		t.Train()
 	}
 }

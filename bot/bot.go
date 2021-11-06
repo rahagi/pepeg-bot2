@@ -10,6 +10,7 @@ import (
 	"github.com/rahagi/pepeg-bot2/irc"
 	"github.com/rahagi/pepeg-bot2/irc/message"
 	"github.com/rahagi/pepeg-bot2/markov/generator"
+	"github.com/rahagi/pepeg-bot2/markov/trainer"
 )
 
 const (
@@ -32,17 +33,19 @@ type bot struct {
 	Handlers      map[string]HandlerFunc
 	EnableLogging bool
 	G             generator.Generator
+	T             trainer.Trainer
 
 	countUntilGenerate int
 }
 
-func NewBot(ircClient irc.IRCClient, enableLogging bool, g generator.Generator) Bot {
+func NewBot(ircClient irc.IRCClient, enableLogging bool, g generator.Generator, t trainer.Trainer) Bot {
 	handlerMap := make(map[string]HandlerFunc)
 	return &bot{
 		IRCClient:          ircClient,
 		Handlers:           handlerMap,
 		EnableLogging:      enableLogging,
 		G:                  g,
+		T:                  t,
 		countUntilGenerate: MARKOV_DEFAULT_COUNTER,
 	}
 }
@@ -77,10 +80,13 @@ func (b *bot) defaultHandler(m *message.Payload) {
 		b.IRCClient.Chat(res)
 		b.resetCounter()
 	default:
-		if b.EnableLogging && m.User != "" {
+		if m.User != "" {
 			fm := fmt.Sprintf("%s: %s", m.User, m.Message)
-			logPath := fmt.Sprintf("./log/%s.log", b.IRCClient.GetChannel())
-			logger.Tee(fm, logPath)
+			go b.T.AddChain(fm)
+			if b.EnableLogging {
+				logPath := fmt.Sprintf("./log/%s.log", b.IRCClient.GetChannel())
+				logger.Tee(fm, logPath)
+			}
 		}
 	}
 }

@@ -17,6 +17,7 @@ import (
 
 type Trainer interface {
 	Train()
+	AddChain(s string)
 }
 
 type trainer struct {
@@ -24,7 +25,11 @@ type trainer struct {
 	trainingData string
 }
 
-func NewTrainer(r *redis.Client, tData string) Trainer {
+func NewTrainer(r *redis.Client) Trainer {
+	return &trainer{r, ""}
+}
+
+func NewTrainerWithData(r *redis.Client, tData string) Trainer {
 	return &trainer{r, tData}
 }
 
@@ -54,6 +59,10 @@ func (t *trainer) Train() {
 		}
 		log.Println("training done")
 	}
+}
+
+func (t *trainer) AddChain(s string) {
+	t.addChain(s)
 }
 
 func (t *trainer) addChain(s string) {
