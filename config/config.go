@@ -8,12 +8,13 @@ import (
 )
 
 type config struct {
-	Username      string
-	OAuth         string
-	Channel       string
-	IRCAddr       string
-	EnableLogging bool
-	RedisHostname string
+	Username         string
+	OAuth            string
+	Channel          string
+	IRCAddr          string
+	RedisHostname    string
+	EnableLogging    bool
+	LearningOnlyMode bool
 }
 
 func BuildConfig() *config {
@@ -23,7 +24,8 @@ func BuildConfig() *config {
 	c.OAuth = os.Getenv("OAUTH")
 	c.Channel = os.Getenv("CHANNEL")
 	c.IRCAddr = os.Getenv("IRC_ADDR")
-	c.EnableLogging, _ = strconv.ParseBool(os.Getenv("ENABLE_LOGGING"))
 	c.RedisHostname = os.Getenv("REDIS_HOSTNAME")
+	c.EnableLogging, _ = strconv.ParseBool(os.Getenv("ENABLE_LOGGING"))
+	c.LearningOnlyMode, _ = strconv.ParseBool(os.Getenv("LEARNING_ONLY_MODE"))
 	return c
 }

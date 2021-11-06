@@ -34,7 +34,7 @@ func main() {
 		// Bot initialization
 		g := generator.NewGenerator(r)
 		t := trainer.NewTrainer(r)
-		bot_ := bot.NewBot(ircClient, cfg.EnableLogging, g, t)
+		bot_ := bot.NewBot(ircClient, cfg.EnableLogging, g, t, cfg.LearningOnlyMode)
 		bot_.Handle("--version", func(i irc.IRCClient, p *message.Payload) error {
 			message := fmt.Sprintf("@%s pepeg-bot2 version: %s", p.User, Version)
 			i.Chat(message)

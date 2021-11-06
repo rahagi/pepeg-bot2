@@ -36,17 +36,20 @@ type bot struct {
 	T             trainer.Trainer
 
 	countUntilGenerate int
+	learningOnly       bool
 }
 
-func NewBot(ircClient irc.IRCClient, enableLogging bool, g generator.Generator, t trainer.Trainer) Bot {
+func NewBot(ircClient irc.IRCClient, enableLogging bool, g generator.Generator, t trainer.Trainer, learningOnly bool) Bot {
 	handlerMap := make(map[string]HandlerFunc)
 	return &bot{
-		IRCClient:          ircClient,
-		Handlers:           handlerMap,
-		EnableLogging:      enableLogging,
-		G:                  g,
-		T:                  t,
+		IRCClient:     ircClient,
+		Handlers:      handlerMap,
+		EnableLogging: enableLogging,
+		G:             g,
+		T:             t,
+
 		countUntilGenerate: MARKOV_DEFAULT_COUNTER,
+		learningOnly:       learningOnly,
 	}
 }
 
@@ -73,12 +76,14 @@ func (b *bot) defaultHandler(m *message.Payload) {
 	case strings.HasPrefix(m.Message, "PING"):
 		b.IRCClient.Pong()
 	case b.countUntilGenerate <= 0:
-		res, err := b.G.Generate(m.Message, MARKOV_MAX_WORDS)
-		if err != nil {
-			return
+		if !b.learningOnly {
+			res, err := b.G.Generate(m.Message, MARKOV_MAX_WORDS)
+			if err != nil {
+				return
+			}
+			b.IRCClient.Chat(res)
+			b.resetCounter()
 		}
-		b.IRCClient.Chat(res)
-		b.resetCounter()
 	default:
 		if m.User != "" {
 			fm := fmt.Sprintf("%s: %s", m.User, m.Message)
