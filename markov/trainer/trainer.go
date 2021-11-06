@@ -75,8 +75,11 @@ func (t *trainer) addChain(s string) {
 	}
 }
 
+// valid message format: <user>: <message?
 func sanitize(s string) string {
 	r := regexp.MustCompile(`(.*:\s)(.*)`)
+	r2 := regexp.MustCompile(`\x01(ACTION )? `)
 	s = r.FindStringSubmatch(s)[2]
+	s = r2.ReplaceAllString(s, "")
 	return s
 }
