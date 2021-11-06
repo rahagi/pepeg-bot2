@@ -29,27 +29,27 @@ type Bot interface {
 }
 
 type bot struct {
-	IRCClient     irc.IRCClient
-	Handlers      map[string]HandlerFunc
-	EnableLogging bool
-	G             generator.Generator
-	T             trainer.Trainer
+	IRCClient irc.IRCClient
+	Handlers  map[string]HandlerFunc
+	G         generator.Generator
+	T         trainer.Trainer
 
 	countUntilGenerate int
+	enableLogging      bool
 	learningOnly       bool
 }
 
 func NewBot(ircClient irc.IRCClient, enableLogging bool, g generator.Generator, t trainer.Trainer, learningOnly bool) Bot {
 	handlerMap := make(map[string]HandlerFunc)
 	return &bot{
-		IRCClient:     ircClient,
-		Handlers:      handlerMap,
-		EnableLogging: enableLogging,
-		G:             g,
-		T:             t,
+		IRCClient: ircClient,
+		Handlers:  handlerMap,
+		G:         g,
+		T:         t,
 
 		countUntilGenerate: MARKOV_DEFAULT_COUNTER,
 		learningOnly:       learningOnly,
+		enableLogging:      enableLogging,
 	}
 }
 
@@ -72,26 +72,23 @@ func (b *bot) Handle(command string, handler HandlerFunc) {
 }
 
 func (b *bot) defaultHandler(m *message.Payload) {
-	switch {
-	case strings.HasPrefix(m.Message, "PING"):
+	if strings.HasPrefix(m.Message, "PING") {
 		b.IRCClient.Pong()
-	case b.countUntilGenerate <= 0:
-		if !b.learningOnly {
-			res, err := b.G.Generate(m.Message, MARKOV_MAX_WORDS)
-			if err != nil {
-				return
-			}
-			b.IRCClient.Chat(res)
-			b.resetCounter()
+	}
+	if b.countUntilGenerate <= 0 && !b.learningOnly {
+		res, err := b.G.Generate(m.Message, MARKOV_MAX_WORDS)
+		if err != nil {
+			return
 		}
-	default:
-		if m.User != "" {
-			fm := fmt.Sprintf("%s: %s", m.User, m.Message)
-			go b.T.AddChain(fm)
-			if b.EnableLogging {
-				logPath := fmt.Sprintf("./log/%s.log", b.IRCClient.GetChannel())
-				logger.Tee(fm, logPath)
-			}
+		b.IRCClient.Chat(res)
+		b.resetCounter()
+	}
+	if m.User != "" {
+		fm := fmt.Sprintf("%s: %s", m.User, m.Message)
+		go b.T.AddChain(fm)
+		if b.enableLogging {
+			logPath := fmt.Sprintf("./log/%s.log", b.IRCClient.GetChannel())
+			logger.Tee(fm, logPath)
 		}
 	}
 }
