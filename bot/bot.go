@@ -9,6 +9,12 @@ import (
 	"github.com/rahagi/pepeg-bot2/helper/logger"
 	"github.com/rahagi/pepeg-bot2/irc"
 	"github.com/rahagi/pepeg-bot2/irc/message"
+	"github.com/rahagi/pepeg-bot2/markov/generator"
+)
+
+const (
+	MARKOV_MAX_WORDS       = 20
+	MARKOV_DEFAULT_COUNTER = 50
 )
 
 type HandlerFunc func(irc.IRCClient, *message.Payload) error
@@ -25,20 +31,26 @@ type bot struct {
 	IRCClient     irc.IRCClient
 	Handlers      map[string]HandlerFunc
 	EnableLogging bool
+	G             generator.Generator
+
+	countUntilGenerate int
 }
 
-func NewBot(ircClient irc.IRCClient, enableLogging bool) Bot {
+func NewBot(ircClient irc.IRCClient, enableLogging bool, g generator.Generator) Bot {
 	handlerMap := make(map[string]HandlerFunc)
 	return &bot{
-		IRCClient:     ircClient,
-		Handlers:      handlerMap,
-		EnableLogging: enableLogging,
+		IRCClient:          ircClient,
+		Handlers:           handlerMap,
+		EnableLogging:      enableLogging,
+		G:                  g,
+		countUntilGenerate: MARKOV_DEFAULT_COUNTER,
 	}
 }
 
 func (b *bot) Init() {
 	messages := b.IRCClient.Receive()
 	for m := range messages {
+		b.countUntilGenerate -= 1
 		b.defaultHandler(m)
 		command, _ := common.PickCommand(m.Message)
 		if hf, ok := b.Handlers[command]; ok {
@@ -57,6 +69,13 @@ func (b *bot) defaultHandler(m *message.Payload) {
 	switch {
 	case strings.HasPrefix(m.Message, "PING"):
 		b.IRCClient.Pong()
+	case b.countUntilGenerate <= 0:
+		res, err := b.G.Generate(m.Message, MARKOV_MAX_WORDS)
+		if err != nil {
+			return
+		}
+		b.IRCClient.Chat(res)
+		b.resetCounter()
 	default:
 		if b.EnableLogging && m.User != "" {
 			fm := fmt.Sprintf("%s: %s", m.User, m.Message)
@@ -64,4 +83,8 @@ func (b *bot) defaultHandler(m *message.Payload) {
 			logger.Tee(fm, logPath)
 		}
 	}
+}
+
+func (b *bot) resetCounter() {
+	b.countUntilGenerate = MARKOV_DEFAULT_COUNTER
 }
