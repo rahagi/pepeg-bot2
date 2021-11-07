@@ -19,11 +19,10 @@ func MakeKey(s []string) string {
 
 func Sanitize(s string) string {
 	ss := strings.Split(s, ": ")
-	if len(ss) < 2 {
-		return ""
-	}
 	r2 := regexp.MustCompile(`\x01(ACTION )?`)
-	s = ss[1]
+	if len(ss) >= 2 {
+		s = strings.Join(ss[1:], " ")
+	}
 	s = r2.ReplaceAllString(s, "")
 	return s
 }
