@@ -34,7 +34,7 @@ func (g *generator) Generate(seed string, maxWords int) (string, error) {
 		return "", fmt.Errorf("generator: seed cannot be shorter than CHAIN_LEN")
 	}
 	key := common.RandKeyBySeed(seed, g.r)
-	res := key + " "
+	res := common.NormalizeKey(key) + " "
 	for i := 0; i < maxWords; i++ {
 		cmd := g.r.ZRangeByScoreWithScores(ctx, key, &redis.ZRangeBy{
 			Min: "-inf",
