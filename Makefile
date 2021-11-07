@@ -1,6 +1,8 @@
 OUT := pepeg-bot2
 PKG := github.com/rahagi/pepeg-bot2
-VERSION := $(shell git describe --always --long) 
+TAG := $(shell git tag)
+SHA8 := $(shell git rev-parse --short HEAD)
+VERSION := ${TAG}-${SHA8}
 DOCKER_TAG := ${OUT}:latest
 PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
 

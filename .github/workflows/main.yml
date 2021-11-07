@@ -13,7 +13,8 @@ jobs:
       - name: Declare Variables
         id: vars
         run: |
-          echo "::set-output name=version::$(git describe --always --long)"
+          echo "::set-output name=SHA8::$(git rev-parse --short HEAD)"
+          echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
       - name: Login to GHCR
         uses: docker/login-action@v1
         with:
@@ -27,4 +28,4 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}:latest
           build-args: |
-            VERSION=${{ steps.vars.outputs.version }}
+            VERSION=${{ steps.vars.outputs.VERSION }}-${{ steps.vars.outputs.SHA8 }}
