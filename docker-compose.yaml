@@ -10,7 +10,7 @@ x-op-network: &network
 services:
   bot:
     container_name: pepeg-bot
-    image: pepeg-bot2:latest
+    image: ghcr.io/rahagi/pepeg-bot2:latest
     <<: *restart-policy
     <<: *network
     env_file:

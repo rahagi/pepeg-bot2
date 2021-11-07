@@ -1,0 +1,30 @@
+name: "Check & Publish"
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Declare Variables
+        id: vars
+        run: |
+          echo "::set-output name=version::$(git describe --always --long)"
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest
+          build-args: |
+            VERSION=${{ steps.vars.outputs.version }}

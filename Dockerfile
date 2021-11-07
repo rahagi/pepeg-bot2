@@ -14,10 +14,12 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags "-X 'main.Version=${VERSION}'" -o pepeg-bot .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags "-X 'main.Version=${VERSION}'" -o pepeg-bot2 .
 
 FROM scratch as prod
 
-COPY --from=build /app/pepeg-bot /app/pepeg-bot
+LABEL org.opencontainers.image.source=https://github.com/rahagi/pepeg-bot2
 
-ENTRYPOINT ["/app/pepeg-bot"]
+COPY --from=build /app/pepeg-bot2 /app/pepeg-bot2
+
+ENTRYPOINT ["/app/pepeg-bot2"]
