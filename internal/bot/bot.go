@@ -20,32 +20,35 @@ const (
 
 type HandlerFunc func(irc.IRCClient, *message.Payload) error
 
+type HandlerMap map[string]HandlerFunc
+
 type Bot interface {
 	// Init starts the bot by receiving messages from the IRC server
 	Init()
 
 	// Handle register a command handler
-	Handle(command string, handler HandlerFunc)
+	Handle(cmd string, h HandlerFunc)
 }
 
 type bot struct {
-	IRCClient irc.IRCClient
-	Handlers  map[string]HandlerFunc
-	G         generator.Generator
-	T         trainer.Trainer
+	i irc.IRCClient
+	h HandlerMap
+	g generator.Generator
+	t trainer.Trainer
 
 	countUntilGenerate int
 	enableLogging      bool
 	learningOnly       bool
 }
 
+// NewBot create new bot
 func NewBot(ircClient irc.IRCClient, enableLogging bool, g generator.Generator, t trainer.Trainer, learningOnly bool) Bot {
-	handlerMap := make(map[string]HandlerFunc)
+	handlerMap := make(HandlerMap)
 	return &bot{
-		IRCClient: ircClient,
-		Handlers:  handlerMap,
-		G:         g,
-		T:         t,
+		i: ircClient,
+		h: handlerMap,
+		g: g,
+		t: t,
 
 		countUntilGenerate: MARKOV_DEFAULT_COUNTER,
 		learningOnly:       learningOnly,
@@ -54,44 +57,55 @@ func NewBot(ircClient irc.IRCClient, enableLogging bool, g generator.Generator, 
 }
 
 func (b *bot) Init() {
-	messages := b.IRCClient.Receive()
-	for m := range messages {
+	messages := b.i.Receive()
+	for p := range messages {
 		b.countUntilGenerate -= 1
-		b.defaultHandler(m)
-		command, _ := common.PickCommand(m.Message)
-		if hf, ok := b.Handlers[command]; ok {
-			if err := hf(b.IRCClient, m); err != nil {
-				log.Printf("bot: failed to handle command %s: %v\n", m.Message, err)
+		b.defaultHandler(p)
+		cmd, _ := common.PickCommand(p.Message)
+		if hf, ok := b.h[cmd]; ok {
+			if err := hf(b.i, p); err != nil {
+				log.Printf("bot: failed to handle command %s: %v\n", p.Message, err)
 			}
 		}
 	}
 }
 
-func (b *bot) Handle(command string, handler HandlerFunc) {
-	b.Handlers[command] = handler
+func (b *bot) Handle(cmd string, h HandlerFunc) {
+	b.h[cmd] = h
 }
 
-func (b *bot) defaultHandler(m *message.Payload) {
-	if strings.HasPrefix(m.Message, "PING") {
-		b.IRCClient.Pong()
+func (b *bot) defaultHandler(p *message.Payload) {
+	if strings.HasPrefix(p.Message, "PING") {
+		b.i.Pong()
 	}
-	if b.countUntilGenerate <= 0 && !b.learningOnly {
-		res, err := b.G.Generate(m.Message, MARKOV_MAX_WORDS)
-		if err != nil {
-			return
+	if b.countUntilGenerate <= 0 {
+		if !b.learningOnly {
+			b.generateMarkov(p)
 		}
-		b.IRCClient.Chat(res)
 		b.resetCounter()
 	}
-	if m.User != "" {
-		go b.T.AddChain(m.Format())
+	if p.User != "" {
+		fm := p.Format()
+		go b.t.AddChain(fm)
 		if b.enableLogging {
-			logPath := fmt.Sprintf("./log/%s.log", b.IRCClient.GetChannel())
-			logger.Tee(m.Format(), logPath)
+			b.log(p)
 		}
 	}
 }
 
 func (b *bot) resetCounter() {
 	b.countUntilGenerate = MARKOV_DEFAULT_COUNTER
+}
+
+func (b *bot) generateMarkov(p *message.Payload) {
+	res, err := b.g.Generate(p.Message, MARKOV_MAX_WORDS)
+	if err != nil {
+		return
+	}
+	b.i.Chat(res)
+}
+
+func (b *bot) log(p *message.Payload) {
+	logPath := fmt.Sprintf("./log/%s.log", b.i.GetChannel())
+	logger.Tee(p.Format(), logPath)
 }

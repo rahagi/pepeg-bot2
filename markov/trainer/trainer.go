@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/rahagi/pepeg-bot2/markov/config"
+	"github.com/rahagi/pepeg-bot2/markov/constant"
 	"github.com/rahagi/pepeg-bot2/markov/helper/common"
 )
 
@@ -57,8 +57,8 @@ func (t *trainer) Train() {
 				t.addChain(s.Text())
 			}
 		}
-		log.Println("training done")
 	}
+	log.Println("training done")
 }
 
 func (t *trainer) AddChain(s string) {
@@ -67,15 +67,15 @@ func (t *trainer) AddChain(s string) {
 
 func (t *trainer) addChain(s string) {
 	s = sanitize(s)
-	m := strings.Split(s, config.WORD_SEPARATOR)
-	if len(m) > config.CHAIN_LEN {
-		for i, j := 0, config.CHAIN_LEN; j <= len(m); i, j = i+1, j+1 {
+	m := strings.Split(s, constant.WORD_SEPARATOR)
+	if len(m) > constant.CHAIN_LEN {
+		for i, j := 0, constant.CHAIN_LEN; j <= len(m); i, j = i+1, j+1 {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			chain := common.MakeKey([]string{m[i], m[i+1]})
 			next := ""
 			if j == len(m) {
-				next = config.STOP_TOKEN
+				next = constant.STOP_TOKEN
 			} else {
 				next = m[j]
 			}
@@ -84,11 +84,13 @@ func (t *trainer) addChain(s string) {
 	}
 }
 
-// valid message format: <user>: <message?
 func sanitize(s string) string {
-	r := regexp.MustCompile(`(.*:\s)(.*)`)
-	r2 := regexp.MustCompile(`\x01(ACTION )? `)
-	s = r.FindStringSubmatch(s)[2]
+	ss := strings.Split(s, ": ")
+	if len(ss) < 2 {
+		return ""
+	}
+	r2 := regexp.MustCompile(`\x01(ACTION )?`)
+	s = ss[1]
 	s = r2.ReplaceAllString(s, "")
 	return s
 }

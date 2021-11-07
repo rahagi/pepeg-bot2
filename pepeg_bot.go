@@ -1,55 +1,58 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/rahagi/pepeg-bot2/config"
+	"github.com/rahagi/pepeg-bot2/handler"
 	"github.com/rahagi/pepeg-bot2/internal/bot"
 	"github.com/rahagi/pepeg-bot2/internal/irc"
-	"github.com/rahagi/pepeg-bot2/internal/irc/message"
 	"github.com/rahagi/pepeg-bot2/markov/generator"
 	"github.com/rahagi/pepeg-bot2/markov/trainer"
 )
 
 var Version = ""
 
+func initBot(cfg *config.Config, r *redis.Client) {
+	log.Printf("starting pepeg-bot2 version: %s", Version)
+
+	// IRC client initialization
+	log.Printf("connecting to (%s)\n", cfg.IRCAddr)
+	ircClient := irc.NewClient(cfg.Username, cfg.OAuth, cfg.Channel, cfg.IRCAddr)
+	log.Printf("connected to (%s)\n", cfg.IRCAddr)
+
+	// Bot initialization
+	g := generator.NewGenerator(r)
+	t := trainer.NewTrainer(r)
+	b := bot.NewBot(ircClient, cfg.EnableLogging, g, t, cfg.LearningOnlyMode)
+	b.Handle("--version", handler.HandleVersion(Version))
+	b.Init()
+}
+
+func initTrain(cfg *config.Config, r *redis.Client, cmd []string) {
+	tData := ""
+	if len(cmd) <= 2 {
+		tData = "training"
+	} else {
+		tData = cmd[1]
+	}
+	log.Printf("connecting to redis (%s)\n", cfg.RedisHostname)
+	t := trainer.NewTrainerWithData(r, tData)
+	t.Train()
+}
+
 func main() {
-	cm := os.Args
+	cmd := os.Args
 	cfg := config.BuildConfig()
 	r := redis.NewClient(&redis.Options{
 		Addr: cfg.RedisHostname,
 	})
 	switch {
-	case len(cm) <= 1:
-		log.Printf("Starting pepeg-bot2 version: %s", Version)
-
-		// IRC client initialization
-		log.Printf("connecting to (%s)\n", cfg.IRCAddr)
-		ircClient := irc.NewClient(cfg.Username, cfg.OAuth, cfg.Channel, cfg.IRCAddr)
-		log.Printf("connected to (%s)\n", cfg.IRCAddr)
-
-		// Bot initialization
-		g := generator.NewGenerator(r)
-		t := trainer.NewTrainer(r)
-		bot_ := bot.NewBot(ircClient, cfg.EnableLogging, g, t, cfg.LearningOnlyMode)
-		bot_.Handle("--version", func(i irc.IRCClient, p *message.Payload) error {
-			message := fmt.Sprintf("@%s pepeg-bot2 version: %s", p.User, Version)
-			i.Chat(message)
-			return nil
-		})
-		bot_.Init()
-	case cm[1] == "train":
-		tData := ""
-		if len(cm) <= 2 {
-			tData = "training"
-		} else {
-			tData = cm[1]
-		}
-		log.Printf("connecting to redis (%s)\n", cfg.RedisHostname)
-		t := trainer.NewTrainerWithData(r, tData)
-		t.Train()
+	case len(cmd) <= 1:
+		initBot(cfg, r)
+	case cmd[1] == "train":
+		initTrain(cfg, r, cmd)
 	}
 }

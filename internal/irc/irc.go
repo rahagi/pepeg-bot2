@@ -30,11 +30,11 @@ type IRCClient interface {
 }
 
 type ircClient struct {
-	Username string
-	OAuth    string
-	Channel  string
-	Addr     string
-	Conn     net.Conn
+	username string
+	oauth    string
+	channel  string
+	addr     string
+	c        net.Conn
 }
 
 // NewClient open an IRC connection using `net.Dial`
@@ -42,10 +42,10 @@ type ircClient struct {
 // it continue authenticate the connection and join a channel
 func NewClient(username, oauth, channel, addr string) IRCClient {
 	client := &ircClient{
-		Username: username,
-		OAuth:    oauth,
-		Channel:  channel,
-		Addr:     addr,
+		username: username,
+		oauth:    oauth,
+		channel:  channel,
+		addr:     addr,
 	}
 	client.initConn()
 	client.auth()
@@ -54,7 +54,7 @@ func NewClient(username, oauth, channel, addr string) IRCClient {
 }
 
 func (i *ircClient) Chat(m string) {
-	message := fmt.Sprintf("PRIVMSG #%s :%s", i.Channel, m)
+	message := fmt.Sprintf("PRIVMSG #%s :%s", i.channel, m)
 	if err := i.send(message); err != nil {
 		log.Printf("client: failed to send a chat message: %v\n", err)
 	}
@@ -62,9 +62,9 @@ func (i *ircClient) Chat(m string) {
 
 func (i *ircClient) Receive() <-chan *message.Payload {
 	messages := make(chan *message.Payload)
-	tp := textproto.NewReader(bufio.NewReader(i.Conn))
+	tp := textproto.NewReader(bufio.NewReader(i.c))
 	go func() {
-		defer i.Conn.Close()
+		defer i.c.Close()
 		for {
 			rawMessage, err := tp.ReadLine()
 			if err != nil {
@@ -82,20 +82,20 @@ func (i *ircClient) Pong() {
 	i.send(message)
 }
 
-func (i *ircClient) GetUsername() string { return i.Username }
+func (i *ircClient) GetUsername() string { return i.username }
 
-func (i *ircClient) GetChannel() string { return i.Channel }
+func (i *ircClient) GetChannel() string { return i.channel }
 
 func (i *ircClient) join() {
-	message := fmt.Sprintf("JOIN #%s", i.Channel)
+	message := fmt.Sprintf("JOIN #%s", i.channel)
 	if err := i.send(message); err != nil {
 		log.Fatalf("client: failed to join a channel: %v", err)
 	}
-	log.Printf("joined channel %s\n", i.Channel)
+	log.Printf("joined channel %s\n", i.channel)
 }
 
 func (i *ircClient) send(m string) error {
-	_, err := i.Conn.Write([]byte(m + "\r\n"))
+	_, err := i.c.Write([]byte(m + "\r\n"))
 	if err != nil {
 		return err
 	}
@@ -104,8 +104,8 @@ func (i *ircClient) send(m string) error {
 
 func (i *ircClient) auth() {
 	messages := []string{
-		"PASS " + i.OAuth,
-		"NICK " + i.Username,
+		"PASS " + i.oauth,
+		"NICK " + i.username,
 	}
 	for _, m := range messages {
 		if err := i.send(m); err != nil {
@@ -115,9 +115,9 @@ func (i *ircClient) auth() {
 }
 
 func (i *ircClient) initConn() {
-	conn, err := net.Dial("tcp", i.Addr)
+	conn, err := net.Dial("tcp", i.addr)
 	if err != nil {
 		log.Fatalf("client: cannot connect to IRC server: %v\n", err)
 	}
-	i.Conn = conn
+	i.c = conn
 }
