@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 	"time"
 
@@ -66,7 +65,7 @@ func (t *trainer) AddChain(s string) {
 }
 
 func (t *trainer) addChain(s string) {
-	s = sanitize(s)
+	s = common.Sanitize(s)
 	m := strings.Split(s, constant.WORD_SEPARATOR)
 	if len(m) > constant.CHAIN_LEN {
 		for i, j := 0, constant.CHAIN_LEN; j <= len(m); i, j = i+1, j+1 {
@@ -82,15 +81,4 @@ func (t *trainer) addChain(s string) {
 			t.r.ZIncrBy(ctx, chain, 1, next)
 		}
 	}
-}
-
-func sanitize(s string) string {
-	ss := strings.Split(s, ": ")
-	if len(ss) < 2 {
-		return ""
-	}
-	r2 := regexp.MustCompile(`\x01(ACTION )?`)
-	s = ss[1]
-	s = r2.ReplaceAllString(s, "")
-	return s
 }
