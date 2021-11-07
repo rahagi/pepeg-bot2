@@ -52,3 +52,7 @@ func PickRandomString(p []string) string {
 	i := rand.Intn(n)
 	return p[i]
 }
+
+func NormalizeKey(k string) string {
+	return strings.ReplaceAll(k, constant.KEY_SEPARATOR, constant.WORD_SEPARATOR)
+}
