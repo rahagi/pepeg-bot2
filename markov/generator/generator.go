@@ -29,6 +29,7 @@ func NewGenerator(r *redis.Client) Generator {
 func (g *generator) Generate(seed string, maxWords int) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
+	seed = common.Sanitize(seed)
 	s := strings.Split(seed, constant.WORD_SEPARATOR)
 	if len(s) < constant.CHAIN_LEN {
 		return "", fmt.Errorf("generator: seed cannot be shorter than CHAIN_LEN")
