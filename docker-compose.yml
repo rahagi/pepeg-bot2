@@ -26,9 +26,6 @@ services:
     volumes:
       - ./model:/data
 
-volumes:
-  model-dump:
-
 networks:
   pepeg-net:
     driver: bridge
