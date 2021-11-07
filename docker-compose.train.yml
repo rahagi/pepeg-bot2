@@ -7,7 +7,7 @@ x-op-network: &network
 services:
   trainer:
     container_name: pepeg-bot-trainer
-    image: pepeg-bot2:latest
+    image: ghcr.io/rahagi/pepeg-bot2:latest
     entrypoint: "/app/pepeg-bot train"
     <<: *network
     env_file:
