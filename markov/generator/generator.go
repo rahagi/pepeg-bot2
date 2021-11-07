@@ -2,7 +2,6 @@ package generator
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -29,10 +28,6 @@ func (g *generator) Generate(seed string, maxWords int) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	seed = common.Sanitize(seed)
-	s := strings.Split(seed, constant.WORD_SEPARATOR)
-	if len(s) < constant.CHAIN_LEN {
-		return "", fmt.Errorf("generator: seed cannot be shorter than CHAIN_LEN")
-	}
 	key := common.RandKeyBySeed(seed, g.r)
 	res := common.NormalizeKey(key) + " "
 	for i := 0; i < maxWords; i++ {
