@@ -3,7 +3,6 @@ package generator
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"strings"
 	"time"
 
@@ -34,10 +33,9 @@ func (g *generator) Generate(seed string, maxWords int) (string, error) {
 	if len(s) < constant.CHAIN_LEN {
 		return "", fmt.Errorf("generator: seed cannot be shorter than CHAIN_LEN")
 	}
-	chain := s[:constant.CHAIN_LEN]
-	res := strings.Join(chain, " ") + " "
+	key := common.RandKeyBySeed(seed, g.r)
+	res := key + " "
 	for i := 0; i < maxWords; i++ {
-		key := common.MakeKey(chain)
 		cmd := g.r.ZRangeByScoreWithScores(ctx, key, &redis.ZRangeBy{
 			Min: "-inf",
 			Max: "+inf",
@@ -47,13 +45,13 @@ func (g *generator) Generate(seed string, maxWords int) (string, error) {
 			return res, nil
 		}
 		arr := generateProbabilitySlice(z)
-		next := pickRandomByProbability(arr)
+		next := common.PickRandomString(arr)
 		if next == constant.STOP_TOKEN || len(arr) == 0 {
 			break
 		}
 		res += next + " "
 		mid := strings.Split(key, constant.KEY_SEPARATOR)[1:]
-		chain = append(mid, next)
+		key = common.MakeKey(append(mid, next))
 	}
 	res = strings.TrimSuffix(res, " ")
 	if len(strings.Split(res, " ")) <= constant.CHAIN_LEN {
@@ -71,14 +69,4 @@ func generateProbabilitySlice(z []redis.Z) probabilitySlice {
 		}
 	}
 	return res
-}
-
-func pickRandomByProbability(p probabilitySlice) string {
-	rand.Seed(time.Now().UnixNano())
-	n := len(p)
-	if n <= 0 {
-		return ""
-	}
-	i := rand.Intn(n)
-	return p[i]
 }
