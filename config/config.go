@@ -7,7 +7,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type config struct {
+type Config struct {
 	Username         string
 	OAuth            string
 	Channel          string
@@ -17,9 +17,9 @@ type config struct {
 	LearningOnlyMode bool
 }
 
-func BuildConfig() *config {
+func BuildConfig() *Config {
 	godotenv.Load()
-	c := new(config)
+	c := new(Config)
 	c.Username = os.Getenv("USERNAME")
 	c.OAuth = os.Getenv("OAUTH")
 	c.Channel = os.Getenv("CHANNEL")

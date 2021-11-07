@@ -9,13 +9,13 @@ import (
 
 // PickCommand parse chat message and return a valid command
 func PickCommand(message string) (string, error) {
-	command := ""
+	cmd := ""
 	if strings.HasPrefix(message, constant.COMMAND_PREFIX) {
 		m := strings.Split(message, " ")
 		if len(m) < 2 {
 			return "", fmt.Errorf("helper/common: invalid command")
 		}
-		command = m[1]
+		cmd = m[1]
 	}
-	return command, nil
+	return cmd, nil
 }
