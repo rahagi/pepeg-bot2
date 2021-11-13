@@ -14,6 +14,9 @@ image:
 compose:
 	docker-compose down && docker-compose up --remove-orphans -d
 
+devcompose: clean
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --remove-orphans -d
+
 train:
 	docker-compose -f docker-compose.train.yml up -d
 
