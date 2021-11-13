@@ -13,3 +13,12 @@ func TestMakeKey(t *testing.T) {
 		t.Errorf("expected: %s, got: %s", expected, key)
 	}
 }
+
+func TestBuildCaseInsensitiveMatch(t *testing.T) {
+	s := "hi"
+	m := buildCaseInsensitiveMatch(s)
+	expected := "[hH][iI]*"
+	if m != expected {
+		t.Errorf("expected: %s, got: %s", expected, m)
+	}
+}

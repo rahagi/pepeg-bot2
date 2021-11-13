@@ -6,7 +6,9 @@ import (
 	"log"
 	"net"
 	"net/textproto"
+	"time"
 
+	"github.com/jpillora/backoff"
 	"github.com/rahagi/pepeg-bot2/internal/irc/message"
 )
 
@@ -35,6 +37,7 @@ type ircClient struct {
 	channel  string
 	addr     string
 	c        net.Conn
+	b        *backoff.Backoff
 }
 
 // NewClient open an IRC connection using `net.Dial`
@@ -46,6 +49,10 @@ func NewClient(username, oauth, channel, addr string) IRCClient {
 		oauth:    oauth,
 		channel:  channel,
 		addr:     addr,
+		b: &backoff.Backoff{
+			Min: 1 * time.Second,
+			Max: 30 * time.Minute,
+		},
 	}
 	client.initConn()
 	client.auth()
@@ -68,7 +75,10 @@ func (i *ircClient) Receive() <-chan *message.Payload {
 		for {
 			rawMessage, err := tp.ReadLine()
 			if err != nil {
-				log.Fatalf("client: lost connection: %v\n", err)
+				i.c.Close()
+				i.initConn()
+				tp = textproto.NewReader(bufio.NewReader(i.c))
+				continue
 			}
 			m := message.BuildPayload(rawMessage)
 			messages <- m
@@ -117,7 +127,11 @@ func (i *ircClient) auth() {
 func (i *ircClient) initConn() {
 	conn, err := net.Dial("tcp", i.addr)
 	if err != nil {
-		log.Fatalf("client: cannot connect to IRC server: %v\n", err)
+		log.Printf("irc: failed to connect to server. attempting to reconnect...")
+		time.Sleep(i.b.Duration())
+		i.initConn()
+		return
 	}
 	i.c = conn
+	i.b.Reset()
 }

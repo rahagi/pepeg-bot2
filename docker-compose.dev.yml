@@ -1,0 +1,10 @@
+version: "2"
+
+services:
+  bot:
+    container_name: pepeg-bot-dev
+    build:
+      context: .
+      args:
+        - VERSION=dev-local
+    image: pepeg-bot2:dev

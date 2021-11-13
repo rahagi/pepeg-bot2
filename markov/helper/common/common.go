@@ -32,14 +32,23 @@ func Sanitize(s string) string {
 }
 
 func RandKeyBySeed(seed string, r *redis.Client) string {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
 	p := strings.Split(seed, constant.WORD_SEPARATOR)
 	if len(p) < 1 {
 		return ""
 	}
-	k := r.Keys(ctx, fmt.Sprintf("%s*", p[0]))
-	res, _ := k.Result()
+	m := buildCaseInsensitiveMatch(p[0])
+	res := []string{}
+	cursor := uint64(0)
+	for {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		s := r.ScanType(ctx, cursor, m, 10000, "ZSET")
+		k, cursor, _ := s.Result()
+		res = append(res, k...)
+		if cursor == 0 {
+			break
+		}
+	}
 	return PickRandomString(res)
 }
 
@@ -55,4 +64,13 @@ func PickRandomString(p []string) string {
 
 func NormalizeKey(k string) string {
 	return strings.ReplaceAll(k, constant.KEY_SEPARATOR, constant.WORD_SEPARATOR)
+}
+
+func buildCaseInsensitiveMatch(s string) string {
+	res := ""
+	for _, r := range s {
+		c := string(r)
+		res += fmt.Sprintf("[%s%s]", strings.ToLower(c), strings.ToUpper(c))
+	}
+	return res + "*"
 }
