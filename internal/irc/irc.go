@@ -24,11 +24,11 @@ type IRCClient interface {
 	// Pong handle `PING` message sent by the server
 	Pong()
 
-	// GetUsername return the username of this bot
-	GetUsername() string
+	// Username return the username of this bot
+	Username() string
 
-	// GetChannel return a channel name this client connect to
-	GetChannel() string
+	// Channel return a channel name this client connect to
+	Channel() string
 }
 
 type ircClient struct {
@@ -92,9 +92,9 @@ func (i *ircClient) Pong() {
 	i.send(message)
 }
 
-func (i *ircClient) GetUsername() string { return i.username }
+func (i *ircClient) Username() string { return i.username }
 
-func (i *ircClient) GetChannel() string { return i.channel }
+func (i *ircClient) Channel() string { return i.channel }
 
 func (i *ircClient) join() {
 	message := fmt.Sprintf("JOIN #%s", i.channel)

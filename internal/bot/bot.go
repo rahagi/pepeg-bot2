@@ -106,6 +106,6 @@ func (b *bot) generateMarkov(p *message.Payload) {
 }
 
 func (b *bot) log(p *message.Payload) {
-	logPath := fmt.Sprintf("./log/%s.log", b.i.GetChannel())
+	logPath := fmt.Sprintf("./log/%s.log", b.i.Channel())
 	logger.Tee(p.Format(), logPath)
 }
