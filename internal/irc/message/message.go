@@ -34,6 +34,6 @@ func BuildPayload(rawMessage string) *Payload {
 	}
 }
 
-func (p *Payload) Format() string {
+func (p *Payload) String() string {
 	return fmt.Sprintf("%s: %s", p.User, p.Message)
 }

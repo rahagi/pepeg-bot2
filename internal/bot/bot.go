@@ -85,7 +85,7 @@ func (b *bot) defaultHandler(p *message.Payload) {
 		b.resetCounter()
 	}
 	if p.User != "" {
-		fm := p.Format()
+		fm := p.String()
 		go b.t.AddChain(fm)
 		if b.enableLogging {
 			b.log(p)
@@ -98,7 +98,7 @@ func (b *bot) resetCounter() {
 }
 
 func (b *bot) generateMarkov(p *message.Payload) {
-	res, err := b.g.Generate(p.Format(), MARKOV_MAX_WORDS)
+	res, err := b.g.Generate(p.String(), MARKOV_MAX_WORDS)
 	if err != nil {
 		return
 	}
@@ -107,5 +107,5 @@ func (b *bot) generateMarkov(p *message.Payload) {
 
 func (b *bot) log(p *message.Payload) {
 	logPath := fmt.Sprintf("./log/%s.log", b.i.Channel())
-	logger.Tee(p.Format(), logPath)
+	logger.Tee(p.String(), logPath)
 }
