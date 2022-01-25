@@ -29,7 +29,8 @@ func initBot(cfg *config.Config, r *redis.Client) {
 	t := trainer.NewTrainer(r)
 	f := filter.NewFromFile(cfg.BannedWordsListPath)
 	b := bot.NewBot(ircClient, cfg.EnableLogging, g, t, cfg.LearningOnlyMode, f)
-	b.Handle("--version", handler.HandleVersion(Version))
+	b.RegisterHandler("--version", handler.MakeVersionHandler(Version))
+	b.RegisterHandler("--echo", handler.MakeEchoHandler())
 	b.Init()
 }
 

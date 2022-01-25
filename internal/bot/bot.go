@@ -27,8 +27,8 @@ type Bot interface {
 	// Init starts the bot by receiving messages from the IRC server
 	Init()
 
-	// Handle register a command handler
-	Handle(cmd string, h HandlerFunc)
+	// Register register a command handler
+	RegisterHandler(cmd string, h HandlerFunc)
 }
 
 type bot struct {
@@ -73,7 +73,7 @@ func (b *bot) Init() {
 	}
 }
 
-func (b *bot) Handle(cmd string, h HandlerFunc) {
+func (b *bot) RegisterHandler(cmd string, h HandlerFunc) {
 	b.h[cmd] = h
 }
 
