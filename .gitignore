@@ -2,6 +2,7 @@
 pepeg_bot
 .env
 log
+banned_words.txt
 training/*
 model/*
 bin/*

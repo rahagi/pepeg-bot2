@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/rahagi/pepeg-bot2/config"
+	"github.com/rahagi/pepeg-bot2/filter"
 	"github.com/rahagi/pepeg-bot2/handler"
 	"github.com/rahagi/pepeg-bot2/internal/bot"
 	"github.com/rahagi/pepeg-bot2/internal/irc"
@@ -26,7 +27,8 @@ func initBot(cfg *config.Config, r *redis.Client) {
 	// Bot initialization
 	g := generator.NewGenerator(r)
 	t := trainer.NewTrainer(r)
-	b := bot.NewBot(ircClient, cfg.EnableLogging, g, t, cfg.LearningOnlyMode)
+	f := filter.NewFromFile(cfg.BannedWordsListPath)
+	b := bot.NewBot(ircClient, cfg.EnableLogging, g, t, cfg.LearningOnlyMode, f)
 	b.Handle("--version", handler.HandleVersion(Version))
 	b.Init()
 }

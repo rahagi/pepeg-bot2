@@ -1,7 +1,9 @@
 package common
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/rahagi/pepeg-bot2/internal/constant"
@@ -18,4 +20,18 @@ func PickCommand(message string) (string, error) {
 		cmd = m[1]
 	}
 	return cmd, nil
+}
+
+func ReadLines(path string) ([]string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	var l []string
+	s := bufio.NewScanner(f)
+	for s.Scan() {
+		l = append(l, s.Text())
+	}
+	return l, s.Err()
 }

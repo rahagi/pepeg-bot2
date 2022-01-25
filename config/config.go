@@ -8,13 +8,14 @@ import (
 )
 
 type Config struct {
-	Username         string
-	OAuth            string
-	Channel          string
-	IRCAddr          string
-	RedisHostname    string
-	EnableLogging    bool
-	LearningOnlyMode bool
+	Username            string
+	OAuth               string
+	Channel             string
+	IRCAddr             string
+	RedisHostname       string
+	EnableLogging       bool
+	LearningOnlyMode    bool
+	BannedWordsListPath string
 }
 
 func BuildConfig() *Config {
@@ -27,5 +28,6 @@ func BuildConfig() *Config {
 	c.RedisHostname = os.Getenv("REDIS_HOSTNAME")
 	c.EnableLogging, _ = strconv.ParseBool(os.Getenv("ENABLE_LOGGING"))
 	c.LearningOnlyMode, _ = strconv.ParseBool(os.Getenv("LEARNING_ONLY_MODE"))
+	c.BannedWordsListPath = os.Getenv("BANNED_WORDS_PATH")
 	return c
 }

@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/rahagi/pepeg-bot2/filter"
 	"github.com/rahagi/pepeg-bot2/internal/helper/common"
 	"github.com/rahagi/pepeg-bot2/internal/helper/logger"
 	"github.com/rahagi/pepeg-bot2/internal/irc"
@@ -14,7 +15,7 @@ import (
 )
 
 const (
-	MARKOV_MAX_WORDS       = 20
+	MARKOV_MAX_WORDS       = 30
 	MARKOV_DEFAULT_COUNTER = 15
 )
 
@@ -35,6 +36,7 @@ type bot struct {
 	h HandlerMap
 	g generator.Generator
 	t trainer.Trainer
+	f filter.Filter
 
 	countUntilGenerate int
 	enableLogging      bool
@@ -42,13 +44,14 @@ type bot struct {
 }
 
 // NewBot create new bot
-func NewBot(ircClient irc.IRCClient, enableLogging bool, g generator.Generator, t trainer.Trainer, learningOnly bool) Bot {
+func NewBot(ircClient irc.IRCClient, enableLogging bool, g generator.Generator, t trainer.Trainer, learningOnly bool, f filter.Filter) Bot {
 	handlerMap := make(HandlerMap)
 	return &bot{
 		i: ircClient,
 		h: handlerMap,
 		g: g,
 		t: t,
+		f: f,
 
 		countUntilGenerate: MARKOV_DEFAULT_COUNTER,
 		learningOnly:       learningOnly,
@@ -77,10 +80,13 @@ func (b *bot) Handle(cmd string, h HandlerFunc) {
 func (b *bot) defaultHandler(p *message.Payload) {
 	if strings.HasPrefix(p.Message, "PING") {
 		b.i.Pong()
+		return
 	}
 	if b.countUntilGenerate <= 0 {
 		if !b.learningOnly {
-			b.generateMarkov(p)
+			m := b.generateMarkov(p)
+			m = b.f.CensorBannedWord(m)
+			b.i.Chat(m)
 		}
 		b.resetCounter()
 	}
@@ -97,12 +103,12 @@ func (b *bot) resetCounter() {
 	b.countUntilGenerate = MARKOV_DEFAULT_COUNTER
 }
 
-func (b *bot) generateMarkov(p *message.Payload) {
+func (b *bot) generateMarkov(p *message.Payload) string {
 	res, err := b.g.Generate(p.String(), MARKOV_MAX_WORDS)
 	if err != nil {
-		return
+		return ""
 	}
-	b.i.Chat(res)
+	return res
 }
 
 func (b *bot) log(p *message.Payload) {
