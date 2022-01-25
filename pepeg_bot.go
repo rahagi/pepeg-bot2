@@ -21,14 +21,14 @@ func initBot(cfg *config.Config, r *redis.Client) {
 
 	// IRC client initialization
 	log.Printf("connecting to (%s)\n", cfg.IRCAddr)
-	ircClient := irc.NewClient(cfg.Username, cfg.OAuth, cfg.Channel, cfg.IRCAddr)
+	f := filter.NewFromFile(cfg.BannedWordsListPath)
+	ircClient := irc.NewClient(cfg.Username, cfg.OAuth, cfg.Channel, cfg.IRCAddr, f)
 	log.Printf("connected to (%s)\n", cfg.IRCAddr)
 
 	// Bot initialization
 	g := generator.NewGenerator(r)
 	t := trainer.NewTrainer(r)
-	f := filter.NewFromFile(cfg.BannedWordsListPath)
-	b := bot.NewBot(ircClient, cfg.EnableLogging, g, t, cfg.LearningOnlyMode, f)
+	b := bot.NewBot(ircClient, cfg.EnableLogging, g, t, cfg.LearningOnlyMode)
 	b.RegisterHandler("--version", handler.MakeVersionHandler(Version))
 	b.RegisterHandler("--echo", handler.MakeEchoHandler())
 	b.Init()

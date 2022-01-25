@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jpillora/backoff"
+	"github.com/rahagi/pepeg-bot2/filter"
 	"github.com/rahagi/pepeg-bot2/internal/irc/message"
 )
 
@@ -37,18 +38,20 @@ type ircClient struct {
 	channel  string
 	addr     string
 	c        net.Conn
+	f        filter.Filter
 	b        *backoff.Backoff
 }
 
 // NewClient open an IRC connection using `net.Dial`
 // with `tcp` connection. After connection has been established,
 // it continue authenticate the connection and join a channel
-func NewClient(username, oauth, channel, addr string) IRCClient {
+func NewClient(username, oauth, channel, addr string, f filter.Filter) IRCClient {
 	client := &ircClient{
 		username: username,
 		oauth:    oauth,
 		channel:  channel,
 		addr:     addr,
+		f:        f,
 		b: &backoff.Backoff{
 			Min: 1 * time.Second,
 			Max: 30 * time.Minute,
@@ -61,6 +64,7 @@ func NewClient(username, oauth, channel, addr string) IRCClient {
 }
 
 func (i *ircClient) Chat(m string) {
+	m = i.f.CensorBannedWord(m)
 	message := fmt.Sprintf("PRIVMSG #%s :%s", i.channel, m)
 	if err := i.send(message); err != nil {
 		log.Printf("client: failed to send a chat message: %v\n", err)

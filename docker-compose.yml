@@ -17,6 +17,7 @@ services:
       - .env
     volumes:
       - ./log:/log
+      - ./banned_words.txt:/banned_words.txt
 
   model:
     container_name: pepeg-bot-model

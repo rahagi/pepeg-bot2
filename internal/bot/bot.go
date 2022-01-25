@@ -5,7 +5,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/rahagi/pepeg-bot2/filter"
 	"github.com/rahagi/pepeg-bot2/internal/helper/common"
 	"github.com/rahagi/pepeg-bot2/internal/helper/logger"
 	"github.com/rahagi/pepeg-bot2/internal/irc"
@@ -36,7 +35,6 @@ type bot struct {
 	h HandlerMap
 	g generator.Generator
 	t trainer.Trainer
-	f filter.Filter
 
 	countUntilGenerate int
 	enableLogging      bool
@@ -44,14 +42,13 @@ type bot struct {
 }
 
 // NewBot create new bot
-func NewBot(ircClient irc.IRCClient, enableLogging bool, g generator.Generator, t trainer.Trainer, learningOnly bool, f filter.Filter) Bot {
+func NewBot(ircClient irc.IRCClient, enableLogging bool, g generator.Generator, t trainer.Trainer, learningOnly bool) Bot {
 	handlerMap := make(HandlerMap)
 	return &bot{
 		i: ircClient,
 		h: handlerMap,
 		g: g,
 		t: t,
-		f: f,
 
 		countUntilGenerate: MARKOV_DEFAULT_COUNTER,
 		learningOnly:       learningOnly,
@@ -85,7 +82,6 @@ func (b *bot) defaultHandler(p *message.Payload) {
 	if b.countUntilGenerate <= 0 {
 		if !b.learningOnly {
 			m := b.generateMarkov(p)
-			m = b.f.CensorBannedWord(m)
 			b.i.Chat(m)
 		}
 		b.resetCounter()
