@@ -43,7 +43,8 @@ func RandKeyBySeed(seed string, r *redis.Client) string {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 		s := r.ScanType(ctx, cursor, m, 10000, "ZSET")
-		k, cursor, _ := s.Result()
+		k, c, _ := s.Result()
+		cursor = c
 		res = append(res, k...)
 		if cursor == 0 {
 			break
