@@ -25,12 +25,12 @@ func NewGenerator(r *redis.Client) Generator {
 }
 
 func (g *generator) Generate(seed string, maxWords int) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
 	seed = common.Sanitize(seed)
 	key := common.RandKeyBySeed(seed, g.r)
 	res := common.NormalizeKey(key) + " "
 	for i := 0; i < maxWords; i++ {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 		cmd := g.r.ZRangeByScoreWithScores(ctx, key, &redis.ZRangeBy{
 			Min: "-inf",
 			Max: "+inf",
@@ -58,7 +58,7 @@ func (g *generator) Generate(seed string, maxWords int) (string, error) {
 func generateProbabilitySlice(z []redis.Z) probabilitySlice {
 	var res probabilitySlice
 	for _, v := range z {
-		normalizedScore := (int(v.Score) / constant.SCORE_MODIFIER) + 1
+		normalizedScore := int((int(v.Score) / constant.SCORE_MODIFIER)) + 1
 		for i := 0; i < normalizedScore; i++ {
 			res = append(res, v.Member.(string))
 		}

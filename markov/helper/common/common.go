@@ -40,7 +40,7 @@ func RandKeyBySeed(seed string, r *redis.Client) string {
 	res := []string{}
 	cursor := uint64(0)
 	for {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		s := r.ScanType(ctx, cursor, m, 10000, "ZSET")
 		k, c, _ := s.Result()
