@@ -3,7 +3,7 @@ PKG := github.com/rahagi/pepeg-bot2
 TAG := $(shell git tag)
 SHA8 := $(shell git rev-parse --short HEAD)
 VERSION := ${TAG}-${SHA8}
-DOCKER_TAG := ${OUT}:latest
+DOCKER_TAG := ${OUT}:dev
 PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
 
 all: run

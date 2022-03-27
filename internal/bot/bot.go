@@ -15,7 +15,7 @@ import (
 
 const (
 	MARKOV_MAX_WORDS       = 30
-	MARKOV_DEFAULT_COUNTER = 25
+	MARKOV_DEFAULT_COUNTER = 50
 )
 
 type HandlerFunc func(irc.IRCClient, *message.Payload) error

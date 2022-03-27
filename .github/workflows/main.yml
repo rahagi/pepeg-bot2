@@ -2,9 +2,8 @@ name: "Check & Publish"
 
 on:
   push:
-  release:
-    types:
-      - published
+    tags:
+      - 'v*'
 
 jobs:
   build:
@@ -31,3 +30,4 @@ jobs:
           tags: ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.DOCKER_TAG }}
           build-args: |
             VERSION=${{ steps.vars.outputs.VERSION }}-${{ steps.vars.outputs.SHA8 }}
+
